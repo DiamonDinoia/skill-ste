@@ -31,11 +31,14 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
     body = json.dumps(body).encode()
     req = urllib.request.Request(f"{BASE}/chat/completions", body, {
         "Authorization": f"Bearer {os.environ['LLM_API_KEY']}", "Content-Type": "application/json"})
-    for attempt in range(4):
+    for attempt in range(6):
         try:
             d = json.load(urllib.request.urlopen(req, timeout=300))
+            # GLM can return reasoning with a null final answer; treat that as a transient failure.
+            if d["choices"][0]["message"]["content"] is None:
+                raise ValueError("null content (reasoning-only reply)")
             break
-        except (OSError, ValueError) as e:
+        except (OSError, ValueError, KeyError) as e:
             print(f"retry {attempt + 1}: {e}")
             time.sleep(5 * 2**attempt)
     else:
