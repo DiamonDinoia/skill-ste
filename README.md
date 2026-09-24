@@ -1,73 +1,42 @@
 # ste
 
-**One reading per sentence.** An agent skill that makes coding agents write technical prose in Simplified
-Technical English (ASD-STE100 Issue 9), the controlled language of aerospace maintenance manuals, adapted to
-software.
+**One reading per sentence.** A coding-agent skill: all prose in ASD-STE100 Simplified Technical English, the controlled
+language of aerospace maintenance manuals, adapted to software.
 
 ## Before and after
 
-Claude Opus 5.5 (`claude-opus-5-5`), one prompt from `eval/prompts.txt`, no tools, no edits:
+Kimi-K3, one prompt, no tools:
 
 > Explain to a junior developer what a data race is and how ThreadSanitizer finds one, in about 150 words.
 
 <table>
 <tr><th>Without the skill</th><th>With the skill</th></tr>
-<tr><td valign="top">A data race occurs when two threads access the same memory location concurrently, at least one access is a write, and no synchronization (mutex, atomic, join) orders them. In C++ the result is undefined behaviour, not merely a stale value: the compiler may cache, reorder or tear the access, so the program can fail rarely and unreproducibly.<br><br>ThreadSanitizer (<code>-fsanitize=thread</code> in gcc and clang) instruments every load, store and synchronization call at compile time. Each thread carries a vector clock, a logical timestamp per thread. Lock, unlock, atomic and thread-create/join operations propagate these clocks, which builds the happens-before relation between events. For every 8 bytes of application memory, shadow memory records the recent accesses: thread, clock, size, read or write. On each new access TSan compares it against those records. If two accesses conflict and neither happens-before the other, it reports a race with both stack traces.<br><br>TSan detects races only on paths that actually execute, so test coverage bounds what it can find.</td><td valign="top">A data race is a defect in a multithreaded program. It occurs when two threads use the same memory location at the same time. At least one of the two threads writes to that location. No synchronization sets an order between the two operations. Examples of synchronization are a mutex, an atomic operation and a thread join.<br><br>In C and C++, a data race causes undefined behavior. The program can give a different result on each run. The compiler can also change the code in ways that break it.<br><br>ThreadSanitizer (TSan) is a tool in the compiler. Compile the program with <code>-fsanitize=thread</code>. The compiler then adds a check before each memory read and write. At run time, TSan records which thread used each location. It uses vector clocks to follow the happens-before order between threads. Two operations can have no happens-before order, and one of them can be a write. In that case, TSan reports a race and shows the two stack traces.<br><br>TSan finds only the races on code paths that the test runs.</td></tr>
+<tr><td valign="top">A data race happens when two threads access the same memory location at the same time, at least one of them is writing, and there's no synchronization (like a mutex) to order those accesses. The result is undefined behavior—your program might work fine a thousand times, then corrupt data or crash mysteriously.<br><br>ThreadSanitizer (TSan) detects these at runtime using dynamic analysis. It instruments your compiled code to track every memory access. For each memory location, TSan maintains "shadow memory" recording which threads recently read or wrote there. When a new access occurs, it checks: does this conflict with a previous access from a different thread? It determines "conflict" using happens-before relationships—if Thread A's write isn't ordered before Thread B's read via synchronization primitives (mutex locks, atomic operations), TSan flags a race. This catches bugs that code review and testing often miss because they depend on specific thread timing.</td><td valign="top">A data race is a bug in multithreaded code. It happens when two threads use the same memory location at the same time. At least one of these threads must write to the memory. The threads do not use locks to control access. This makes the program behavior unpredictable. <br><br>ThreadSanitizer finds these bugs during program execution. It monitors every memory access. It records which thread reads or writes to each location. It also records the synchronization events. It checks if two accesses to the same location can happen at the same time. If they can, and one is a write, it reports a race. This tool helps the developer find bugs that are hard to reproduce. The developer must fix the race to make the code safe.</td></tr>
 </table>
 
 ## Results
 
-Claude Opus 5.5, 11 prose prompts (`eval/run.sh OUT 1`, then `eval/report.py OUT`). Rates are
-`ste.py lint` findings per 1e3 words. `full` is every ASD-STE100 rule restated for software, 2.9e3 tokens.
+The shipped body is the measured local optimum: an 8-candidate one-axis tournament on Kimi-K3 found no variant with
+fewer lint findings; adding rule text or removing it both lose compliance.
 
-| arm | added context (tok) | output tok (sum) | words (sum) | unapproved words | passive | sentences > 25 words | semicolons |
-|---|---|---|---|---|---|---|---|
-| no skill | 0 | 15722 | 3626 | 95.7 | 9.4 | 2.8 | 4.4 |
-| all rules (`full`) | 2935 | 25473 | 3755 | 70.6 | 2.1 | 0.5 | 0.0 |
-| this skill | 229 | 10333 | 1979 | 57.1 | 2.0 | 0.0 | 0.0 |
-
-The skill adds 229 tokens of context. Against no skill, it cuts output tokens by 34% and words by 45%. Its lint rates
-are at or below those of the full rule set in every column of the table, with 8% of the added context.
-
-### Faithfulness to real STE
-
-The benchmark uses 31 STE example texts from ASD-STE100 Part 1. A model rewrites each example as an informal
-note. Then each arm rewrites the note back into STE. chrF (character 6-gram F-score, 0 to 100) compares each
-result with the original STE text. Two controls calibrate the scale: a text against itself scores 100.0, and a
-text against a different example scores 22.5.
-
-| arm | added context (Kimi tok) | chrF, Kimi-K3 | paired diff, Kimi-K3 | chrF, Opus 5.5 | paired diff, Opus 5.5 |
+| L | candidate | K3 findings /1e3 words, cur -> cand | gain | chrF, cur -> cand | system tok, cur -> cand |
 |---|---|---|---|---|---|
-| informal note | | 70.7 | | 65.0 | |
-| no skill | 0 | 80.3 | | 80.3 | |
-| this skill | 217 | 78.8 | -1.5 +/- 1.8 | 78.7 | -2.0 +/- 1.4 |
-| 450-word rule summary | 584 | 76.2 | -4.1 +/- 2.2 | 78.9 | -1.4 +/- 1.8 |
-| all rules (`full`) | 2091 | 76.1 | -4.1 +/- 2.4 | 79.1 | -1.0 +/- 1.4 |
+| A | compress | 79.0 -> 79.1 | -0.1% | 80.9 -> 82.0 | 217 -> 173 |
+| B | neglist | 79.0 -> 107.3 | -35.7% | 80.9 -> 81.0 | 217 -> 212 |
+| C | table | 79.0 -> 95.0 | -20.2% | 80.9 -> 81.8 | 217 -> 228 |
+| D | example | 79.0 -> 89.3 | -13.0% | 80.9 -> 81.8 | 217 -> 239 |
+| E | order | 79.0 -> 80.1 | -1.4% | 80.9 -> 80.8 | 217 -> 216 |
+| F | lintloop | 79.0 -> 113.8 | -44.1% | 80.9 -> 80.9 | 217 -> 234 |
+| G | trimmed | 79.0 -> 103.6 | -31.1% | 80.9 -> 80.3 | 217 -> 291 |
+| H | floor80 | 79.0 -> 94.4 | -19.4% | 80.9 -> 82.6 | 217 -> 93 |
 
-The rewrite request already says "Simplified Technical English", so the no-skill arm also knows the target.
-Long rule lists make the model paraphrase into unapproved synonyms: "verify" for "make sure", "follow" for
-"obey", "perform". Those synonyms move the text away from the original. A paired diff is the mean over the
-references of (arm chrF - no-skill chrF), +/- one standard error. On Opus 5.5, every arm is within 1.5
-standard errors of no skill. On Kimi-K3, the skill is within one standard error, and the two long rule sets
-lose 4 chrF.
+88.7% of residual findings are unapproved-word class, dominated by terms of art the linter cannot verify.
+The run quarantined `moonshotai/Kimi-K2.6` and `GLM-5.3`: K2.6 returned HTTP 500 on all requests, and GLM-5.3
+reasoned past its token budget and returned null content. Full transcript: `eval/opt/results/tournament.md`.
 
-Kimi-K3 prose (12 prompts x 3 reps, `eval/kimi_prose.py`), findings per 1e3 words, no skill -> this skill:
-unapproved words 115.1 -> 89.9, passive 5.5 -> 1.9, person 12.1 -> 2.8, contractions 3.3 -> 0.0. The median
-output falls from 263 to 172 tokens.
+## Lint
 
-
-## What the skill does
-
-`skills/ste/SKILL.md` is about 130 words. It tells the agent to write all prose in ASD-STE100, keep code, math
-and logs verbatim, use the code or the machine as the subject, and not paraphrase approved STE words into
-unapproved synonyms. It also gives the active-voice rule and the 20-word and 25-word sentence limits. The
-benchmarks above show that a longer rule list adds context and makes the result less faithful.
-
-`skills/ste/rules.md` restates every ASD-STE100 writing rule for software, with the spec rule numbers. It is
-not loaded into the context: `ste.py lint` prints its path, and the agent reads it when a rule is unclear.
-
-`skills/ste/scripts/ste.py lint` checks a text against the rules and the STE dictionary. For each violation, it
-prints the approved alternatives. The agent runs it on request.
+`ste.py lint` lists each violation with the approved alternatives:
 
 ```console
 $ echo "We basically set up the buffer; it is handled by the loop, e.g. in foo()." | python3 skills/ste/scripts/ste.py lint
@@ -81,60 +50,32 @@ $ echo "We basically set up the buffer; it is handled by the loop, e.g. in foo()
 ste lint: 7 findings, checked with dictionary ~/.cache/ste/dictionary.tsv
 ```
 
-The STE dictionary (875 approved and 1274 unapproved words) is copyright ASD and is not in this repository. Run
-`python3 skills/ste/scripts/ste.py build` once. That command downloads the free official PDF from
-[asd-ste100.org](https://www.asd-ste100.org/STE_downloads.html) and builds the dictionary in `~/.cache/ste`.
-Without the dictionary, `lint` checks only the grammar and punctuation rules and says so.
-
 ## Install
 
 | Harness | Command |
 |---|---|
 | Claude Code | `claude plugin marketplace add DiamonDinoia/ste-skill && claude plugin install ste@ste --scope user` |
-| Codex CLI | `codex plugin marketplace add DiamonDinoia/ste-skill`, then install `ste` from `/plugins` |
+| Codex CLI | `codex plugin marketplace add DiamonDinoia/ste-skill`, then `codex plugin add ste@ste` |
 | Gemini CLI | `gemini extensions install https://github.com/DiamonDinoia/ste-skill --consent` |
 | opencode, Cursor, Copilot, Codex | `npx skills add DiamonDinoia/ste-skill --skill ste -g -y -a codex -a opencode -a cursor -a github-copilot` |
-| any agent that `gh skill` supports | `gh skill install DiamonDinoia/ste-skill ste --agent claude-code --scope user` (`gh skill install --help` lists the agents) |
-| any agent, by hand | `git clone https://github.com/DiamonDinoia/ste-skill && ln -s "$PWD/ste-skill/skills/ste" ~/.claude/skills/ste` |
+| any `gh skill` agent | `gh skill install DiamonDinoia/ste-skill ste --agent claude-code --scope user` |
+| by hand | `git clone https://github.com/DiamonDinoia/ste-skill && ln -s "$PWD/ste-skill/skills/ste" ~/.claude/skills/ste` |
 
-`npx skills add` writes one copy to `~/.agents/skills/ste`, which Codex, opencode, Cursor and Copilot read.
-opencode also reads `~/.claude/skills`. After the install, build the dictionary once. `ste.py` needs Python 3.9 or later and `pdftotext` (poppler-utils):
+Claude Code: in `/plugin`, enable auto-update for the `ste` marketplace. `claude plugin disable ste@ste` stops the
+skill. `claude plugin update ste@ste` pulls the new release.
 
-```sh
-python3 <installed skill directory>/scripts/ste.py build
-```
-
-The Claude Code plugin adds the skill body (217 tokens) to the context at each session start, so every answer
-uses STE. `claude plugin disable ste@ste` stops it. Claude Code does not update third-party marketplaces by
-default: in `/plugin`, open Marketplaces, select `ste` and enable auto-update. Each release bumps the version in
-`.claude-plugin/plugin.json`. Claude Code gets the new version in the background after a session starts, and
-`claude plugin update ste@ste` gets it immediately.
-
-In the other harnesses, the skill loads when a task asks for technical prose. To apply it to every answer, add one
-line to `AGENTS.md` or `GEMINI.md`: `Write all prose in STE (the ste skill).`
+The STE dictionary is copyright ASD and not in this repository. Build it once with
+`python3 <installed skill directory>/scripts/ste.py build` (Python 3.9+, `pdftotext`). Without the dictionary,
+`lint` checks only grammar and punctuation.
 
 ## Validation
 
-`test/run.sh` builds a container with Claude Code, Codex, Gemini CLI, opencode and the `skills` CLI. In that
-container, it installs the skill from this repository with the mechanism of each harness and checks that each
-harness finds the skill. It also builds the dictionary from the official PDF and runs `lint`. Then it runs the
-same checks on a copy with an invalid skill name. That run must fail, and on the name check.
+`test/run.sh` builds a container with each harness, installs the skill with each mechanism and checks that each
+harness finds it. A copy with an invalid skill name must fail on the name check. Commands:
 
 ```sh
-test/run.sh            # podman, or: test/run.sh docker
-```
-
-Benchmarks:
-
-```sh
-awk 'n>=2; /^---$/{n++}' skills/ste/SKILL.md > skill.md   # the skill body, without the frontmatter
-python3 eval/faithful/extract.py   # the 31 STE references: (c) ASD, rebuilt from the PDF and refs.lock
-: > empty.md
-eval/run.sh OUT 1 && eval/report.py OUT                    # Claude Code prose: no skill, full, skill
-eval/faithful/run.sh FOUT base=empty.md skill=skill.md && eval/faithful/score.py FOUT
-# any OpenAI-compatible endpoint: LLM_BASE_URL, LLM_API_KEY, LLM_MODEL; ARM=- is no system prompt
-python3 eval/faithful/kimi.py CACHE base=- skill=skill.md full=skills/ste/rules.md
-python3 eval/kimi_prose.py CACHE 3 base=- skill=skill.md full=skills/ste/rules.md
+test/run.sh                              # podman, or: test/run.sh docker
+eval/run.sh OUT 1 && eval/report.py OUT  # Claude Code prose: no skill, full rule set, this skill
 ```
 
 ## License
