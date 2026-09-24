@@ -1,2 +1,4 @@
 __pycache__/
 eval/faithful/refs.jsonl
+eval/opt/cache/
+eval/opt/results/

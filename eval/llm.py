@@ -22,8 +22,13 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
     if not BASE:
         raise SystemExit("error: set LLM_BASE_URL to an OpenAI-compatible endpoint")
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
-    body = json.dumps({"model": MODEL, "messages": msgs, "max_tokens": max_tokens, "temperature": 0.6,
-                       "chat_template_kwargs": {"thinking": False}}).encode()
+    body = {"model": MODEL, "messages": msgs, "max_tokens": max_tokens, "temperature": 0.6}
+    # Thinking off, per provider: Kimi takes a flag, GLM takes a type map, Mistral rejects the field.
+    if MODEL.startswith("moonshotai/"):
+        body["chat_template_kwargs"] = {"thinking": False}
+    elif MODEL.startswith("zai-org/"):
+        body["chat_template_kwargs"] = {"thinking": {"type": "disabled"}}
+    body = json.dumps(body).encode()
     req = urllib.request.Request(f"{BASE}/chat/completions", body, {
         "Authorization": f"Bearer {os.environ['LLM_API_KEY']}", "Content-Type": "application/json"})
     for attempt in range(4):
@@ -38,5 +43,7 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
     r = {"text": d["choices"][0]["message"]["content"].strip(), "in": d["usage"]["prompt_tokens"],
          "out": d["usage"]["completion_tokens"]}
     cache.mkdir(parents=True, exist_ok=True)
-    f.write_text(json.dumps(r))
+    tmp = f.with_suffix(".tmp")  # atomic: a concurrent reader never sees half a JSON
+    tmp.write_text(json.dumps(r))
+    tmp.rename(f)
     return r
