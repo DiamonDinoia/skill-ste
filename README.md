@@ -104,8 +104,14 @@ opencode also reads `~/.claude/skills`. After the install, build the dictionary 
 python3 <installed skill directory>/scripts/ste.py build
 ```
 
-The skill loads when a task asks for technical prose, or on request (`/ste` in Claude Code). To apply it to every
-answer, add one line to `CLAUDE.md` or `AGENTS.md`: `Write all prose in STE (the ste skill).`
+The Claude Code plugin adds the skill body (217 tokens) to the context at each session start, so every answer
+uses STE. `claude plugin disable ste@ste` stops it. Claude Code does not update third-party marketplaces by
+default: in `/plugin`, open Marketplaces, select `ste` and enable auto-update. Each release bumps the version in
+`.claude-plugin/plugin.json`. Claude Code gets the new version in the background after a session starts, and
+`claude plugin update ste@ste` gets it immediately.
+
+In the other harnesses, the skill loads when a task asks for technical prose. To apply it to every answer, add one
+line to `AGENTS.md` or `GEMINI.md`: `Write all prose in STE (the ste skill).`
 
 ## Validation
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs the skill from /repo with each harness's own mechanism, then proves each harness sees it.
+# Installs the skill from /repo with the mechanism of each harness, then proves each one sees it.
 # Runs inside test/Dockerfile. Collects every result and fails at the end.
 set -uo pipefail
 repo=${1:-/repo}
@@ -32,6 +32,12 @@ check "claude marketplace add" claude plugin marketplace add "$repo"
 check "claude plugin install" claude plugin install ste@ste --scope user
 check "claude skill on disk" bash -c 'f=$(find ~/.claude/plugins -path "*skills/ste/SKILL.md" | head -1); has "$f" "^name: ste" && echo "$f"'
 check "claude plugin list shows ste" bash -c 'claude plugin list | grep -q "ste@ste"'
+# The SessionStart hook of the installed copy prints the skill body without the frontmatter.
+check "claude SessionStart hook prints the skill body" bash -c \
+  'root=$(dirname "$(find ~/.claude/plugins -path "*/hooks/hooks.json" | head -1)")/..
+   cmd=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))[\"hooks\"][\"SessionStart\"][0][\"hooks\"][0][\"command\"])" "$root/hooks/hooks.json")
+   out=$(CLAUDE_PLUGIN_ROOT=$root bash -c "$cmd") && dir=${out##*The skill directory is } && echo "$out"
+   [[ $out == *"Write all prose"* && $out != *"name: ste"* && -f ${dir%.}/scripts/ste.py ]]'
 
 # Codex: plugin marketplace (reads .claude-plugin/marketplace.json) and the skills directory.
 check "codex marketplace add" codex plugin marketplace add "$repo"
