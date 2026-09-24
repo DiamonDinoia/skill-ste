@@ -1,0 +1,12 @@
+A colleague reports that their C++ loop got much slower after they added an if inside the inner loop. Explain in about 150 words what probably happened.
+Write a short PR description for a change where memcpy was replaced by memmove because source and destination can overlap.
+Explain in about 150 words why summing a million floats naively gives a bad result and what the change to pairwise summation does.
+Write a commit message for a change that stops a matrix transpose from crashing when the matrix has zero rows.
+Write the README section that tells a new contributor how to build the project with CMake and run the tests.
+Write a doc comment for a C++ function `resize_pool(size_t n)` that grows a memory pool, invalidates pointers into it, and throws std::bad_alloc on failure.
+Explain to a junior developer what a data race is and how ThreadSanitizer finds one, in about 150 words.
+Write the troubleshooting steps for a Python package that fails to import with "undefined symbol" after an upgrade.
+Summarize in 5 bullet points what changed when a function switched from returning std::vector by value to writing into a caller-provided std::span.
+Write a code review comment on a pull request that holds a mutex while doing blocking file I/O.
+Explain in about 150 words when to use float instead of double in a numerical simulation.
+Write release notes for version 2.0 of a library that removes a deprecated API, adds AVX-512 kernels, and fixes a memory leak.
