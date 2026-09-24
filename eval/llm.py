@@ -1,6 +1,6 @@
 """Minimal OpenAI-compatible chat client with a JSON result cache, stdlib only.
 
-Endpoint: LLM_BASE_URL (default https://inference.flatironinstitute.org/v1), key: LLM_API_KEY, model: LLM_MODEL.
+Endpoint: LLM_BASE_URL (for example https://api.openai.com/v1), key: LLM_API_KEY, model: LLM_MODEL.
 """
 import hashlib
 import json
@@ -9,7 +9,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-BASE = os.environ.get("LLM_BASE_URL", "https://inference.flatironinstitute.org/v1")
+BASE = os.environ.get("LLM_BASE_URL")
 MODEL = os.environ.get("LLM_MODEL", "moonshotai/Kimi-K3")
 
 
@@ -19,6 +19,8 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
     f = cache / f"{key}.json"
     if f.exists():
         return json.loads(f.read_text())
+    if not BASE:
+        raise SystemExit("error: set LLM_BASE_URL to an OpenAI-compatible endpoint")
     msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
     body = json.dumps({"model": MODEL, "messages": msgs, "max_tokens": max_tokens, "temperature": 0.6,
                        "chat_template_kwargs": {"thinking": False}}).encode()
