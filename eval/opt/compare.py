@@ -183,7 +183,7 @@ def main() -> int:
                 ([f"chrF {r['cand_chrf']:.1f} < cur {r['cur_chrf']:.1f} - 1.0"]
                  if r["cand_chrf"] < r["cur_chrf"] - 1.0 else [])
         name = args.name or Path(args.cand).stem
-        (out / f"{name}.json").write_text(json.dumps({
+        (out / (f"{name}.json" if not fails else f"{name}-fail.json")).write_text(json.dumps({
             "candidate": name, "gate": True, "models": models, "reps": args.reps,
             "prompts": args.prompts, "pooled_gain": gain, "pooled_chrf_diff": pd_, "rows": rows}, indent=1))
         print(f"gate: K3 findings {r['cur_rate']:.1f} -> {r['cand_rate']:.1f} "
