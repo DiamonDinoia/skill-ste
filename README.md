@@ -98,7 +98,7 @@ Without the dictionary, `lint` checks only the grammar and punctuation rules and
 | any agent, by hand | `git clone https://github.com/DiamonDinoia/ste-skill && ln -s "$PWD/ste-skill/skills/ste" ~/.claude/skills/ste` |
 
 `npx skills add` writes one copy to `~/.agents/skills/ste`, which Codex, opencode, Cursor and Copilot read.
-opencode also reads `~/.claude/skills`. After the install, build the dictionary once:
+opencode also reads `~/.claude/skills`. After the install, build the dictionary once. `ste.py` needs Python 3.9 or later and `pdftotext` (poppler-utils):
 
 ```sh
 python3 <installed skill directory>/scripts/ste.py build

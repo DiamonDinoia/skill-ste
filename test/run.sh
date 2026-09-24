@@ -11,6 +11,19 @@ engine=${1:-$(command -v podman >/dev/null && echo podman || echo docker)}
 
 run() { "$engine" run --rm -v "$1:/repo:ro" -v "$root/test/install.sh:/install.sh:ro" ste-skill-test bash /install.sh /repo; }
 
+# The linter is stdlib only: every Python it claims runs it, dictionary or not.
+echo "== ste.py on Python 3.9 to 3.14"
+if uv --version >/dev/null 2>&1; then
+  for v in 3.9 3.10 3.11 3.12 3.13 3.14; do
+    got=$(echo 'We set up the tile.' | STE_HOME=$(mktemp -d) uv run -q --no-project --python "$v" \
+      "$root/skills/ste/scripts/ste.py" lint) && s=0 || s=$?
+    want=$'-:1: person: We\n-:1: phrasal: set up'
+    [[ $s == 1 && $got == "$want"* ]] || { echo "FAIL python $v: exit $s: $got"; exit 1; }
+    echo "PASS python $v"
+  done
+else
+  echo "SKIP python 3.9 to 3.14: uv is not installed"
+fi
 echo "== repository"
 run "$root"
 

@@ -8,6 +8,8 @@
 The dictionary is ASD copyright. It is built on the user's machine from the user's own copy and is never
 redistributed. Without a dictionary, `lint` checks only the style rules and says so.
 """
+from __future__ import annotations  # `str | None` in signatures on Python 3.9
+
 import json
 import os
 import re
