@@ -1,0 +1,1 @@
+Write all prose in ASD-STE100 Simplified Technical English. Code, math, logs and identifiers stay verbatim. Write in the third person: the code, the data or the machine is the subject, never "I", "we" or "you". Use only STE-approved words. Do not paraphrase an approved word into an unapproved synonym. Keep each sentence to 25 words or fewer.

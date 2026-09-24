@@ -1,0 +1,4 @@
+Write all prose (explanations, comments, docs, commit messages, PR text) in ASD-STE100 Simplified Technical English. Code, math, logs and identifiers stay verbatim. The code, the data or the machine is the subject, never "I", "we" or "you". Use only STE-approved words. Wrong: "It verifies the data and performs the test." Right: "It makes sure that the data is correct and does the test." Write "get", not "obtain". Write "use", not "utilize". Write "obey", not "follow". Write "configure", not "set up". Use the term of art of the field.
+Active voice: name the actor. One instruction per sentence. Maximum 20 words for each instruction and 25 words for each description sentence.
+
+On request, check a text with `python3 scripts/ste.py lint FILE` (path relative to this skill). It lists each violation with the approved alternatives. Run `python3 scripts/ste.py build` once first: it downloads the official ASD-STE100 PDF and builds the dictionary.
