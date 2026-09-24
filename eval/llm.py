@@ -28,6 +28,8 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
         body["chat_template_kwargs"] = {"thinking": False}
     elif MODEL.startswith("zai-org/"):
         body["chat_template_kwargs"] = {"thinking": {"type": "disabled"}}
+        # GLM still reasons a remnant before the answer; give the answer budget to exist.
+        body["max_tokens"] = max_tokens * 3
     body = json.dumps(body).encode()
     req = urllib.request.Request(f"{BASE}/chat/completions", body, {
         "Authorization": f"Bearer {os.environ['LLM_API_KEY']}", "Content-Type": "application/json"})
@@ -43,6 +45,8 @@ def chat(system: str, user: str, cache: Path, max_tokens: int = 2000) -> dict:
             time.sleep(5 * 2**attempt)
     else:
         d = json.load(urllib.request.urlopen(req, timeout=300))
+        if d["choices"][0]["message"]["content"] is None:
+            raise SystemExit(f"error: {MODEL} returned null content after 6 retries")
     r = {"text": d["choices"][0]["message"]["content"].strip(), "in": d["usage"]["prompt_tokens"],
          "out": d["usage"]["completion_tokens"]}
     cache.mkdir(parents=True, exist_ok=True)
