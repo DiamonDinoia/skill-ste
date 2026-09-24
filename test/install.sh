@@ -42,6 +42,8 @@ check "claude SessionStart hook prints the skill body" bash -c \
 # Codex: plugin marketplace (reads .claude-plugin/marketplace.json) and the skills directory.
 check "codex marketplace add" codex plugin marketplace add "$repo"
 check "codex marketplace list shows ste" bash -c 'codex plugin marketplace list | grep -q ste'
+check "codex plugin add" codex plugin add ste@ste
+check "codex plugin cache has the skill" bash -c 'find ~/.codex/plugins/cache -path "*ste*" -name SKILL.md | grep -q .'
 
 # Gemini CLI: extension.
 check "gemini extension install" bash -c "yes | gemini extensions install '$repo' --consent"
@@ -57,6 +59,12 @@ check "skills ls -g shows ste" bash -c 'skills ls -g 2>&1 | grep -q ste'
 # gh skill: --from-local installs the checkout. The README form installs OWNER/REPO.
 check "gh skill install" gh skill install "$repo" ste --from-local --agent claude-code --scope user
 check "gh skill on disk" has ~/.claude/skills/ste/SKILL.md "^name: ste"
+check "gh skill install opencode" gh skill install "$repo" ste --from-local --agent opencode --scope user
+check "opencode skill on disk" has ~/.config/opencode/skills/ste/SKILL.md "^name: ste"
+check "gh skill install cursor" gh skill install "$repo" ste --from-local --agent cursor --scope user
+check "cursor skill on disk" has ~/.cursor/skills/ste/SKILL.md "^name: ste"
+check "gh skill install github-copilot" gh skill install "$repo" ste --from-local --agent github-copilot --scope user
+check "copilot skill on disk" has ~/.copilot/skills/ste/SKILL.md "^name: ste"
 
 # By hand, as in the README, in a fresh home: gh skill already wrote ~/.claude/skills/ste.
 manual=$(mktemp -d)
