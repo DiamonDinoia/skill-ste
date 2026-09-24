@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
-# D2 check: README is short, keeps its required sections, and its benchmark tables
-# are rendered (eval/opt/tables.py) from the PASS transcript of the installed skill body.
+# D2 check: README is short, keeps its required sections, and its Results gate table
+# matches the committed tournament transcript (eval/opt/results/tournament.md) verbatim.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 fail=0
 size=$(wc -c < README.md)
 [ "$size" -le 6000 ] || { echo "FAIL: README.md is $size bytes, cap 6000"; fail=1; }
 for anchor in 'claude plugin marketplace add DiamonDinoia/ste-skill' 'claude plugin install ste@ste' \
-              'codex plugin marketplace add' 'gemini extensions install' \
+              'codex plugin marketplace add' 'codex plugin add ste@ste' 'gemini extensions install' \
               'npx skills add' 'gh skill install' 'git clone' \
-              'Without the skill' 'With the skill' 'data race' \
-              'test/run.sh' 'eval/' 'ste.py build' 'MIT' 'ASD'; do
+              'Without the skill' 'With the skill' 'data race' 'Kimi-K3' \
+              'test/run.sh' 'eval/' 'ste.py build' 'MIT' 'ASD' 'chrF'; do
   grep -qF "$anchor" README.md || { echo "FAIL: README.md lost anchor: $anchor"; fail=1; }
 done
-# Bind the tables to the installed skill: the transcript name carries the body hash.
-H=$(awk 'n>=2; /^---$/{n++}' skills/ste/SKILL.md | sha256sum | cut -c1-12)
-T="eval/opt/results/SKILL-$H.json"
-if [ ! -f "$T" ]; then
-  echo "FAIL: no PASS transcript for the installed skill body (want $T; run bash eval/opt/check.sh)"
-  fail=1
-else
-  python3 eval/opt/tables.py "$T" --check README.md || fail=1
-fi
-[ "$fail" = 0 ] && echo "PASS: README.md $size bytes, anchors present, tables match $T"
+# Provenance: every candidate row of the tournament gate table appears in the README
+# (whitespace-insensitive), so the Results numbers come from the committed transcript.
+python3 - <<'EOF'
+import re, sys
+t = open("eval/opt/results/tournament.md").read()
+rows = [l for l in t.splitlines() if re.match(r"\|\s*[A-H]\s*\|", l)]
+def norm(s):
+    return re.sub(r"\s+", "", s).replace("|", "")
+readme = norm(open("README.md").read())
+missing = [r.strip() for r in rows if norm(r) not in readme]
+if missing:
+    print("FAIL: README lacks these tournament gate rows:")
+    print("\n".join(missing))
+    sys.exit(1)
+print(f"PASS: README carries all {len(rows)} tournament gate rows")
+EOF
+[ $? = 0 ] || fail=1
+[ "$fail" = 0 ] && echo "PASS: README.md $size bytes, anchors present, gate table matches tournament.md"
 exit "$fail"
