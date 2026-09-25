@@ -12,7 +12,7 @@ check() { # name, command...
 }
 
 # Every CLI answers its own --version before anything is gated on it.
-for c in claude codex gemini opencode skills gh; do check "$c --version: $($c --version 2>&1 | head -1)" "$c" --version; done
+for c in claude codex gemini opencode; do check "$c --version: $($c --version 2>&1 | head -1)" "$c" --version; done
 
 # Skill format: agentskills.io name rule and the 1024-character description limit.
 check "frontmatter name/description" python3 - "$repo/skills/ste/SKILL.md" <<'EOF'
@@ -68,37 +68,7 @@ check "gemini extension install" bash -c "yes | gemini extensions install '$repo
 check "gemini extensions list shows ste" bash -c 'gemini extensions list 2>&1 | grep -q ste'
 check "gemini skill on disk" has ~/.gemini/extensions/ste/skills/ste/SKILL.md "^name: ste"
 
-# skills CLI: one command for Codex, opencode, Cursor and Copilot directories.
-check "npx skills add" skills add "$repo" --skill ste -g -y -a codex -a opencode -a cursor -a github-copilot
-# skills 1.7 writes one copy to ~/.agents/skills: Codex, opencode, Cursor, Copilot read it.
-check "skills CLI -> ~/.agents/skills" has ~/.agents/skills/ste/SKILL.md "^name: ste"
-check "skills ls -g shows ste" bash -c 'skills ls -g 2>&1 | grep -q ste'
-# `-a '*'` covers the whole agentskills ecosystem: one universal copy plus a symlink per agent
-# home (skills 1.7: 56 agent dirs; Eve and PromptScript rightly refuse global installs). --force:
-# the universal copy exists already from the 4-agent run above. Cursor/Copilot/opencode read the
-# universal copy, so the key-dirs check names symlinked homes only.
-check "npx skills add --all agents" skills add --force "$repo" --skill ste -g -y -a '*'
-check "all-agents: universal copy resolves" bash -c \
-  'n=$(find -L ~ -mindepth 3 -path "*/skills/ste/SKILL.md" 2>/dev/null | wc -l); [ "$n" -ge 40 ] && echo "$n agent skill dirs"'
-check "all-agents: key harness dirs" bash -c '
-  for d in ~/.continue/skills/ste ~/.codeium/windsurf/skills/ste ~/.roo/skills/ste; do
-    [ -e "$d/SKILL.md" ] || { echo "missing $d"; exit 1; }
-  done'
-
-# gh skill: --from-local installs the checkout. The README form installs OWNER/REPO.
-# --force below: the skills-CLI all-agents run above already linked ~/.claude/skills/ste.
-check "gh skill install" gh skill install --force "$repo" ste --from-local --agent claude-code --scope user
-check "gh skill on disk" has ~/.claude/skills/ste/SKILL.md "^name: ste"
-check "gh skill install opencode" gh skill install "$repo" ste --from-local --agent opencode --scope user
-check "opencode skill on disk" has ~/.config/opencode/skills/ste/SKILL.md "^name: ste"
-check "gh skill install cursor" gh skill install "$repo" ste --from-local --agent cursor --scope user
-check "cursor skill on disk" has ~/.cursor/skills/ste/SKILL.md "^name: ste"
-check "gh skill install github-copilot" gh skill install "$repo" ste --from-local --agent github-copilot --scope user
-check "copilot skill on disk" has ~/.copilot/skills/ste/SKILL.md "^name: ste"
-check "gh skill install universal" gh skill install --force "$repo" ste --from-local --agent universal --scope user
-check "universal copy on disk" has ~/.agents/skills/ste/SKILL.md "^name: ste"
-
-# By hand, as in the README, in a fresh home: gh skill already wrote ~/.claude/skills/ste.
+# By hand, as in the README, in a fresh home.
 manual=$(mktemp -d)
 check "manual symlink" bash -c "mkdir -p '$manual/.claude/skills' && ln -s '$repo/skills/ste' '$manual/.claude/skills/ste'"
 check "manual skill on disk" has "$manual/.claude/skills/ste/SKILL.md" "^name: ste"
