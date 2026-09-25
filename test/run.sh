@@ -7,9 +7,9 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 engine=${1:-$(command -v podman >/dev/null && echo podman || echo docker)}
 "$engine" --version
-"$engine" build -t ste-skill-test "$root/test"
+"$engine" build -t skill-ste-test "$root/test"
 
-run() { "$engine" run --rm -v "$1:/repo:ro" -v "$root/test/install.sh:/install.sh:ro" ste-skill-test bash /install.sh /repo; }
+run() { "$engine" run --rm -v "$1:/repo:ro" -v "$root/test/install.sh:/install.sh:ro" skill-ste-test bash /install.sh /repo; }
 
 # The linter is stdlib only: every Python it claims runs it, dictionary or not.
 echo "== ste.py on Python 3.9 to 3.14"

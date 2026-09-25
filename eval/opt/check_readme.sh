@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../.."
 fail=0
 size=$(wc -c < README.md)
 [ "$size" -le 6000 ] || { echo "FAIL: README.md is $size bytes, cap 6000"; fail=1; }
-for anchor in 'claude plugin marketplace add DiamonDinoia/ste-skill' 'claude plugin install ste@ste' \
+for anchor in 'claude plugin marketplace add DiamonDinoia/skill-ste' 'claude plugin install ste@ste' \
               'codex plugin marketplace add' 'codex plugin add ste@ste' 'gemini extensions install' \
               'npx skills add' 'gh skill install' 'git clone' \
               'Without the skill' 'With the skill' 'data race' 'Kimi-K3' \

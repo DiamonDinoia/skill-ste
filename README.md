@@ -54,12 +54,12 @@ ste lint: 7 findings, checked with dictionary ~/.cache/ste/dictionary.tsv
 
 | Harness | Command |
 |---|---|
-| Claude Code | `claude plugin marketplace add DiamonDinoia/ste-skill && claude plugin install ste@ste --scope user` |
-| Codex CLI | `codex plugin marketplace add DiamonDinoia/ste-skill`, then `codex plugin add ste@ste` |
-| Gemini CLI | `gemini extensions install https://github.com/DiamonDinoia/ste-skill --consent` |
-| ~50 agents: opencode, Cursor, Copilot, Windsurf, Roo, Continue, ... | `npx skills add DiamonDinoia/ste-skill --skill ste -g -y -a '*'` |
-| any `gh skill` agent | `gh skill install DiamonDinoia/ste-skill ste --agent claude-code --scope user` (or `--agent universal`) |
-| by hand | `git clone https://github.com/DiamonDinoia/ste-skill && ln -s "$PWD/ste-skill/skills/ste" ~/.claude/skills/ste` |
+| Claude Code | `claude plugin marketplace add DiamonDinoia/skill-ste && claude plugin install ste@ste --scope user` |
+| Codex CLI | `codex plugin marketplace add DiamonDinoia/skill-ste`, then `codex plugin add ste@ste` |
+| Gemini CLI | `gemini extensions install https://github.com/DiamonDinoia/skill-ste --consent` |
+| ~50 agents: opencode, Cursor, Copilot, Windsurf, Roo, Continue, ... | `npx skills add DiamonDinoia/skill-ste --skill ste -g -y -a '*'` |
+| any `gh skill` agent | `gh skill install DiamonDinoia/skill-ste ste --agent claude-code --scope user` (or `--agent universal`) |
+| by hand | `git clone https://github.com/DiamonDinoia/skill-ste && ln -s "$PWD/skill-ste/skills/ste" ~/.claude/skills/ste` |
 
 Every harness with a native format carries one in this repository: `.claude-plugin/` for Claude
 Code, `.codex-plugin/` (Codex prefers its own plugin manifest; the container test proves it wins)
