@@ -57,9 +57,14 @@ ste lint: 7 findings, checked with dictionary ~/.cache/ste/dictionary.tsv
 | Claude Code | `claude plugin marketplace add DiamonDinoia/ste-skill && claude plugin install ste@ste --scope user` |
 | Codex CLI | `codex plugin marketplace add DiamonDinoia/ste-skill`, then `codex plugin add ste@ste` |
 | Gemini CLI | `gemini extensions install https://github.com/DiamonDinoia/ste-skill --consent` |
-| opencode, Cursor, Copilot, Codex | `npx skills add DiamonDinoia/ste-skill --skill ste -g -y -a codex -a opencode -a cursor -a github-copilot` |
-| any `gh skill` agent | `gh skill install DiamonDinoia/ste-skill ste --agent claude-code --scope user` |
+| ~50 agents: opencode, Cursor, Copilot, Windsurf, Roo, Continue, ... | `npx skills add DiamonDinoia/ste-skill --skill ste -g -y -a '*'` |
+| any `gh skill` agent | `gh skill install DiamonDinoia/ste-skill ste --agent claude-code --scope user` (or `--agent universal`) |
 | by hand | `git clone https://github.com/DiamonDinoia/ste-skill && ln -s "$PWD/ste-skill/skills/ste" ~/.claude/skills/ste` |
+
+Every harness with a native format already carries one in this repository: the Claude/Codex
+marketplace (`.claude-plugin/`), the Gemini extension (`gemini-extension.json`). Everything else
+uses the two installers above: both write `~/.agents/skills/ste`, and `skills add -a '*'` also
+symlinks each agent's home (claude, cursor, copilot, windsurf, continue, and more).
 
 Claude Code: in `/plugin`, enable auto-update for the `ste` marketplace. `claude plugin disable ste@ste` stops the
 skill. `claude plugin update ste@ste` pulls the new release.
