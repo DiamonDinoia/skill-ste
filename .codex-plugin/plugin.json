@@ -1,0 +1,18 @@
+{
+  "name": "ste",
+  "description": "Simplified Technical English (ASD-STE100) for technical prose: one reading per sentence, fewer output tokens.",
+  "version": "1.1.0",
+  "author": { "name": "Marco Barbone" },
+  "homepage": "https://github.com/DiamonDinoia/ste-skill",
+  "repository": "https://github.com/DiamonDinoia/ste-skill",
+  "license": "MIT",
+  "keywords": ["skills", "simplified-technical-english", "ste", "technical-writing", "prose"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ste",
+    "shortDescription": "Simplified Technical English for agent prose",
+    "longDescription": "Writes explanations, comments, docs, commit messages and PR text in ASD-STE100 Simplified Technical English: one reading per sentence, short sentences, approved vocabulary.",
+    "category": "Productivity",
+    "capabilities": ["Instructions"]
+  }
+}

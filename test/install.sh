@@ -40,10 +40,28 @@ check "claude SessionStart hook prints the skill body" bash -c \
    [[ $out == *"Write all prose"* && $out != *"name: ste"* && -f ${dir%.}/scripts/ste.py ]]'
 
 # Codex: plugin marketplace (reads .claude-plugin/marketplace.json) and the skills directory.
+# A fresh CODEX_HOME per run: the control run shares the machine and must not see the main run's cache.
+export CODEX_HOME=$(mktemp -d)
 check "codex marketplace add" codex plugin marketplace add "$repo"
 check "codex marketplace list shows ste" bash -c 'codex plugin marketplace list | grep -q ste'
 check "codex plugin add" codex plugin add ste@ste
-check "codex plugin cache has the skill" bash -c 'find ~/.codex/plugins/cache -path "*ste*" -name SKILL.md | grep -q .'
+check "codex plugin cache has the skill" bash -c 'find "$CODEX_HOME/plugins/cache" -path "*ste*" -name SKILL.md | grep -q .'
+# Codex prefers a native .codex-plugin/plugin.json when present: the cache path carries its version.
+# The name assert is the control-run tripwire: STE_bad must not satisfy it.
+check "codex reads .codex-plugin/plugin.json" python3 - "$repo" <<'EOF'
+import json, os, re, sys
+from pathlib import Path
+home = Path(os.environ["CODEX_HOME"])
+repo = Path(sys.argv[1])
+codex_v = json.loads((repo / ".codex-plugin/plugin.json").read_text())["version"]
+claude_v = json.loads((repo / ".claude-plugin/plugin.json").read_text())["version"]
+assert codex_v == claude_v, (codex_v, claude_v)  # one release, two manifests
+hit = list(home.glob("plugins/cache/*/*/" + codex_v))
+assert hit, "codex did not install from the codex manifest version"
+skill = hit[0] / "skills/ste/SKILL.md"
+assert skill.exists() and re.search(r"^name: ste\s*$", skill.read_text(), re.M), skill
+print(f"codex native manifest won: {hit[0]}")
+EOF
 
 # Gemini CLI: extension.
 check "gemini extension install" bash -c "yes | gemini extensions install '$repo' --consent"
