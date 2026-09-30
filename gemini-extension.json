@@ -1,5 +1,5 @@
 {
   "name": "ste",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Simplified Technical English (ASD-STE100) for technical prose: one reading per sentence, fewer output tokens."
 }

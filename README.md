@@ -57,9 +57,11 @@ ste lint: 7 findings, checked with dictionary ~/.cache/ste/dictionary.tsv
 | Claude Code | `claude plugin marketplace add DiamonDinoia/skill-ste && claude plugin install ste@ste --scope user` |
 | Codex CLI | `codex plugin marketplace add DiamonDinoia/skill-ste`, then `codex plugin add ste@ste` |
 | Gemini CLI | `gemini extensions install https://github.com/DiamonDinoia/skill-ste --consent` |
+| opencode (by hand, scripted) | `git clone https://github.com/DiamonDinoia/skill-ste && ./skill-ste/install-opencode.sh` |
 | by hand | `git clone https://github.com/DiamonDinoia/skill-ste && ln -s "$PWD/skill-ste/skills/ste" ~/.claude/skills/ste` |
 
-The three harnesses with a native manifest carry one in this repository: `.claude-plugin/` for Claude Code, `.codex-plugin/` for Codex, and `gemini-extension.json` for Gemini CLI. Any other harness: install by hand (last row).
+The three harnesses with a native manifest carry one in this repository: `.claude-plugin/` for Claude Code, `.codex-plugin/` for Codex, and `gemini-extension.json` for Gemini CLI. opencode has no plugin system —
+`install-opencode.sh` links the skill and the `/ste` command from a checkout. Any other harness: install by hand (last row).
 
 Claude Code: in `/plugin`, enable auto-update for the `ste` marketplace. `claude plugin disable ste@ste` stops the
 skill. `claude plugin update ste@ste` pulls the new release.
