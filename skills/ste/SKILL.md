@@ -1,6 +1,6 @@
 ---
 name: ste
-description: Write technical prose (explanations, code comments, docs, commit messages, PR text) in ASD-STE100 Simplified Technical English. Use for technical writing, or when the user says "STE", "simplified technical english" or "controlled language".
+description: Use for technical writing, or when the user says "STE": write prose in ASD-STE100 Simplified Technical English.
 license: MIT. The ASD-STE100 dictionary is built locally from the user's own copy of the spec.
 ---
 
