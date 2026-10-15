@@ -13,6 +13,10 @@ Active voice: name the actor. One instruction per sentence. Maximum 20 words for
 instruction, 25 for each description. Think in these simple words and short sentences too, not only for
 the output. The full rule set is rules.md.
 
+When the user grants broad edit rights on a file (for example "edit as much as you want"),
+decide the cuts and the rewrites. Do not ask for each change. List the cuts and fixes in the
+report. A question about an already-granted change wastes a delegation round.
+
 On request, check a text with `python3 scripts/ste.py lint FILE` (path relative to this skill): it lists
 each violation with the approved alternatives. Run `python3 scripts/ste.py build` once
 first: it downloads the official ASD-STE100 PDF and builds the dictionary.
