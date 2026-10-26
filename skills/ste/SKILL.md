@@ -19,4 +19,7 @@ report. A question about an already-granted change wastes a delegation round.
 
 On request, check a text with `python3 scripts/ste.py lint FILE` (path relative to this skill): it lists
 each violation with the approved alternatives. Run `python3 scripts/ste.py build` once
-first: it downloads the official ASD-STE100 PDF and builds the dictionary.
+first: it downloads the official ASD-STE100 PDF and builds the dictionary. After one
+correct run of `ste.py build` the dictionary stays at
+/home/marco/.cache/ste/dictionary.tsv and lint runs offline. While that cache file is
+there, a worker must not skip lint if the network is down.
