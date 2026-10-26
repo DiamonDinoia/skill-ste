@@ -23,7 +23,7 @@ On request, check a text with `python3 scripts/ste.py lint FILE` (path relative 
 each violation with the approved alternatives. Run `python3 scripts/ste.py build` once
 first: it downloads the official ASD-STE100 PDF and builds the dictionary. After one
 correct run of `ste.py build` the dictionary stays at
-/home/marco/.cache/ste/dictionary.tsv and lint runs offline. While that cache file is
+~/.cache/ste/dictionary.tsv and lint runs offline. While that cache file is
 there, a worker must not skip lint if the network is down.
 
 A review or edit gate counts sentence length on the added lines of the diff, not on the whole file. A whole-file count fails a scoped brief on sentences that predate the change. Compare against the base diff or a pre-edit copy and require zero added sentences over the limit. A bold lead-in (`**Label.**`) glues to the sentence it starts under a naive word counter; split that sentence or count the line by hand.
